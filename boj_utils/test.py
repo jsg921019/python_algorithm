@@ -1,41 +1,62 @@
-from itertools import combinations
 import sys
 
-sys.stdin = open('/home/jsg/git/nikoneko/boj_utils/input.txt', 'r')
+def findSushi(N, d, k, c, l):
 
-N = int(input())
-cost = list()
-for n in range(N):
-    cost_row = list(map(int, input().split()))
-    cost.append(cost_row)
+    mem = [0]*(d+1)
+    low, high = 0, 0
+    maxSushi = -1
+    cnt = 0
 
-value = 600
+    while(low < N):
+        if(mem[l[high%N]] < 1 and cnt != k):
+            mem[l[high%N]] += 1
+            high += 1
+            cnt += 1
+        else:
+            mem[l[low%N]] -= 1
+            low += 1
+            cnt -= 1
+        if(mem[c] == 0):
+            maxSushi = max(maxSushi, high-low+1)
+        else:
+            maxSushi = max(maxSushi, high-low)
+    
+    return maxSushi
 
-for x1 in range(1, len(cost)-1):
-    for y1 in range(1, len(cost[0])-1):
-        first_pos = [x1, y1]
 
-        for x2 in range(1, len(cost)-1):
-            for y2 in range(1, len(cost[0])-1):
-                second_pos_temp = [x2, y2]
-                diff12 = abs(first_pos[0]-second_pos_temp[0])+abs(first_pos[1]-second_pos_temp[1])
-                if diff12 >= 3:
-                    second_pos = second_pos_temp
+def solution(N, d, k, c, arr):
 
-                    for x3 in range(1, len(cost)-1):
-                        for y3 in range(1, len(cost[0])-1):
-                            third_pos_temp = [x3, y3]
-                            diff13 = abs(first_pos[0]-third_pos_temp[0])+abs(first_pos[1]-third_pos_temp[1])
-                            diff23 = abs(second_pos[0]-third_pos_temp[0])+abs(second_pos[1]-third_pos_temp[1])
-                            if diff13 >= 3 and diff23 >= 3:
-                                third_pos = third_pos_temp
-                                value1 = cost[first_pos[1]][first_pos[0]] + cost[first_pos[1]][first_pos[0]-1] + cost[first_pos[1]-1][first_pos[0]] + cost[first_pos[1]+1][first_pos[0]] + cost[first_pos[1]][first_pos[0]+1]
-                                value2 = cost[second_pos[1]][second_pos[0]] + cost[second_pos[1]][second_pos[0]-1] + cost[second_pos[1]-1][second_pos[0]] + cost[second_pos[1]+1][second_pos[0]] + cost[second_pos[1]][second_pos[0]+1]
-                                value3 = cost[third_pos[1]][third_pos[0]] + cost[third_pos[1]][third_pos[0]-1] + cost[third_pos[1]-1][third_pos[0]] + cost[third_pos[1]+1][third_pos[0]] + cost[third_pos[1]][third_pos[0]+1]
-                                value = min(value, value1+value2+value3)
-                                # print("first: {},\tsecond: {},\tthird: {}".format(first_pos, second_pos, third_pos))
-                                # print("first: {},\tsecond: {},\tthird: {}".format(value1, value2, value3))
-                                # print(first_pos-second_pos)
-                    
+    lo, hi, sushies, cnt, ans = 0, k-1, [0]*(d+1), 0, 0
+    for s in arr[:k] + [c]:
+        if sushies[s] == 0:
+            cnt += 1
+        sushies[s] += 1
 
-print(value)
+    while lo < N:
+
+        ans = max(ans, cnt)
+
+        sushies[arr[lo]] -= 1
+        if sushies[arr[lo]] == 0:
+            cnt -= 1
+        lo += 1
+
+        hi = (hi + 1) % N
+        sushies[arr[hi]] += 1
+        if sushies[arr[hi]] == 1:
+            cnt += 1
+
+    return ans
+
+
+if __name__ == "__main__":
+    #N, d, k, c = map(int, sys.stdin.readline().split())
+    #l = [int(sys.stdin.readline()) for i in range(N)]
+    import random
+    N, d, k, c = 6, 6, 4, 6
+
+    for _ in range(100000):
+        arr = [random.randint(1, d-1) for _ in range(N)]
+        if findSushi(N, d, k, c, arr) != solution(N, d, k, c, arr):
+            print(N, d, k, c, arr, findSushi(N, d, k, c, arr), solution(N, d, k, c, arr))
+            break
